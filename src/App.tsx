@@ -1,43 +1,33 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Navbar, Sidebar } from './components/Layout';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { Navbar } from './components/Layout';
 import { Home } from './pages/Home';
-import { LoginPage, SignupPage } from './pages/Auth';
-import { Dashboard } from './pages/Dashboard';
-import { VerificationPage } from './pages/Verification';
+import { AboutPage } from './pages/About';
+import { LoginPage, RoleSelection, SignupPage } from './pages/Auth';
+import { StudentDashboard, VerifierDashboard } from './pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = useAuthStore(state => state.token);
-  return token ? <>{children}</> : <Navigate to="/login" />;
+const PrivateRoute = ({ role, children }: { role: 'student' | 'verifier'; children: React.ReactNode }) => {
+  const { token, user } = useAuthStore();
+  if (!token || !user) return <Navigate to="/role-selection" />;
+  if (user.role !== role) return <Navigate to={user.role === 'student' ? '/student/dashboard' : '/verifier/dashboard'} />;
+  return <>{children}</>;
 };
 
 export default function App() {
-  const user = useAuthStore(state => state.user);
-
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-[#F3F4F6]">
         <Navbar />
-        <div className="flex flex-1">
-          {user && <Sidebar />}
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/verify" element={<VerificationPage />} />
-              <Route 
-                path="/dashboard/*" 
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                } 
-              />
-            </Routes>
-          </main>
-        </div>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/role-selection" element={<RoleSelection />} />
+          <Route path="/login/:role" element={<LoginPage />} />
+          <Route path="/signup/:role" element={<SignupPage />} />
+          <Route path="/student/dashboard" element={<PrivateRoute role="student"><StudentDashboard /></PrivateRoute>} />
+          <Route path="/verifier/dashboard" element={<PrivateRoute role="verifier"><VerifierDashboard /></PrivateRoute>} />
+        </Routes>
       </div>
     </Router>
   );
