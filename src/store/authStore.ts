@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 
+export type Role = 'student' | 'verifier';
+
 interface User {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: Role;
+  organization?: string;
 }
 
 interface AuthState {
